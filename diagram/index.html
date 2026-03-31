@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python CI/CD Pipeline Diagram</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --border: #cfd8e3;
+      --text: #1f2937;
+      --muted: #5b6472;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --orange: #ea580c;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #f8fafc, #eef2ff);
+      color: var(--text);
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    .subtitle {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .diagram {
+      display: grid;
+      grid-template-columns: 230px 420px 310px 320px;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      position: relative;
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+    }
+
+    .source-card {
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .icon-circle {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: #111827;
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 42px;
+      margin-bottom: 18px;
+    }
+
+    .pipeline-header {
+      margin-bottom: 18px;
+      border: 2px solid #94a3b8;
+      border-radius: 18px;
+      padding: 16px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 24px;
+      background: #f8fafc;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .step {
+      background: var(--blue);
+      color: white;
+      border-radius: 12px;
+      padding: 16px 18px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+      position: relative;
+    }
+
+    .step:not(:last-child)::after {
+      content: "↓";
+      position: absolute;
+      left: 50%;
+      bottom: -22px;
+      transform: translateX(-50%);
+      color: #64748b;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .step.green {
+      background: var(--green);
+      box-shadow: 0 8px 18px rgba(22, 163, 74, 0.22);
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .quality-callout {
+      margin-top: 16px;
+      background: #ecfdf5;
+      border: 1px solid #86efac;
+      color: #166534;
+      border-radius: 14px;
+      padding: 14px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .aws-box {
+      min-height: 320px;
+    }
+
+    .brand {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      text-align: center;
+      color: #1f2937;
+    }
+
+    .service-card {
+      margin-top: 18px;
+      border: 2px dashed #cbd5e1;
+      border-radius: 18px;
+      padding: 20px;
+      text-align: center;
+      background: #fff;
+    }
+
+    .service-card .big {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .orange {
+      color: var(--orange);
+    }
+
+    .eks-area {
+      min-height: 520px;
+    }
+
+    .cluster {
+      margin-top: 18px;
+      border: 2px dashed #cbd5e1;
+      border-radius: 20px;
+      padding: 18px;
+      background: #f8fafc;
+    }
+
+    .lb {
+      width: 170px;
+      margin: 0 auto 22px;
+      background: #1d4ed8;
+      color: white;
+      border-radius: 999px;
+      padding: 12px 18px;
+      text-align: center;
+      font-weight: 800;
+      box-shadow: 0 10px 18px rgba(29, 78, 216, 0.2);
+    }
+
+    .apps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .app-box {
+      background: white;
+      border: 1px solid #bfdbfe;
+      border-radius: 16px;
+      padding: 16px 10px;
+      text-align: center;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(59, 130, 246, 0.12);
+    }
+
+    .emoji {
+      font-size: 34px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .arrow-text {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      margin: 8px 0 2px;
+    }
+
+    .footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1180px) {
+      .diagram {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Python App CI/CD Pipeline Diagram</h1>
+    <p class="subtitle">GitHub → Jenkins → SonarQube → Docker → AWS ECR → Amazon EKS with Helm</p>
+
+    <div class="diagram">
+      <section class="panel source-card">
+        <div class="icon-circle">🐙</div>
+        <h2>GitHub</h2>
+        <p>Source code repository for the Python Flask application.</p>
+        <div class="small-note">Commit &amp; Push triggers Jenkins through webhook</div>
+      </section>
+
+      <section class="panel">
+        <div class="pipeline-header">Jenkins CI/CD Pipeline</div>
+        <div class="steps">
+          <div class="step">1. Checkout Code</div>
+          <div class="step">2. Install Dependencies</div>
+          <div class="step">3. Run Tests (Pytest)</div>
+          <div class="step">4. SonarQube Analysis</div>
+          <div class="step">5. Quality Gate Check</div>
+          <div class="step">6. Build Docker Image</div>
+          <div class="step">7. Push Image to ECR</div>
+          <div class="step">8. Deploy to EKS with Helm</div>
+          <div class="step green">9. Python App Running on EKS</div>
+        </div>
+        <div class="quality-callout">Quality Gate Passed ✅</div>
+      </section>
+
+      <section class="panel aws-box">
+        <div class="brand">AWS</div>
+        <div class="service-card">
+          <div class="big orange">Amazon ECR</div>
+          <div>Private container registry</div>
+          <div class="small-note">Stores the Docker image built by Jenkins</div>
+        </div>
+        <div class="service-card">
+          <div class="big">SonarQube</div>
+          <div>Code quality and static analysis</div>
+          <div class="small-note">Jenkins waits for webhook quality gate result</div>
+        </div>
+      </section>
+
+      <section class="panel eks-area">
+        <h2>Amazon EKS</h2>
+        <p>Helm deploys the Kubernetes resources for the Python application.</p>
+        <div class="cluster">
+          <div class="lb">LoadBalancer</div>
+          <div class="arrow-text">Traffic distributed to app pods</div>
+          <div class="apps">
+            <div class="app-box"><span class="emoji">🐍</span>Python App</div>
+            <div class="app-box"><span class="emoji">🐍</span>Python App</div>
+            <div class="app-box"><span class="emoji">🐍</span>Python App</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="footer">
+      Flow summary: GitHub webhook triggers Jenkins, Jenkins tests and scans the Python app, Docker image is pushed to ECR, and Helm deploys it to Amazon EKS.
+    </div>
+  </div>
+</body>
+</html>

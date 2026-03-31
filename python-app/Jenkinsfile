@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCOUNT_ID    = 'YOUR_AWS_ACCOUNT_ID'
+        AWS_ACCOUNT_ID     = '612990353866'
         AWS_DEFAULT_REGION = 'eu-central-1'
         ECR_REPO          = 'python-app'
         IMAGE_TAG         = "${BUILD_NUMBER}"
@@ -10,7 +10,7 @@ pipeline {
         IMAGE_URI         = "${IMAGE_REPO}:${IMAGE_TAG}"
 
         SONARQUBE_ENV     = 'sonarqube-server'
-        EKS_CLUSTER_NAME  = 'YOUR_EKS_CLUSTER_NAME'
+        EKS_CLUSTER_NAME  = 'attractive-rock-outfit'
         HELM_RELEASE      = 'python-app'
         K8S_NAMESPACE     = 'default'
     }
