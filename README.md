@@ -66,3 +66,12 @@ jenkins-ci-cd-pipeline-python/
     ├── requirements.txt
     ├── run.py
     └── sonar-project.properties
+
+
+-Author
+
+  Ahmad Alabrash
+
+-Conclusion
+
+  This project demonstrates a full DevOps workflow for a Python application, from code commit to Kubernetes deployment, using modern CI/CD and cloud-native tools.
