@@ -50,12 +50,15 @@ stage('Run Tests') {
 stage('SonarQube Analysis') {
     steps {
         dir('python-app') {
-            withSonarQubeEnv("${SONARQUBE_ENV}") {
-                sh '''
-                    . venv/bin/activate
-                    export PYTHONPATH=$(pwd)
-                    sonar-scanner
-                '''
+            script {
+                def scannerHome = tool 'sonar-scanner'
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    sh """
+                        . venv/bin/activate
+                        export PYTHONPATH=\$(pwd)
+                        ${scannerHome}/bin/sonar-scanner
+                    """
+                }
             }
         }
     }
