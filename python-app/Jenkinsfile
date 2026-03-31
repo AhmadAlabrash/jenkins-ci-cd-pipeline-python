@@ -15,6 +15,7 @@ pipeline {
         K8S_NAMESPACE     = 'default'
     }
 
+
     stages {
         stage('Checkout') {
             steps {
@@ -22,50 +23,50 @@ pipeline {
             }
         }
 
-stage('Install Dependencies') {
-    steps {
-        dir('python-app') {
-            sh '''
-                python3 -m venv venv
-                . venv/bin/activate
-                pip install --upgrade pip
-                pip install -r requirements.txt
-            '''
-        }
-    }
-}
-
-stage('Run Tests') {
-    steps {
-        dir('python-app') {
-            sh '''
-                . venv/bin/activate
-                export PYTHONPATH=$(pwd)
-                pytest tests --maxfail=1 --disable-warnings --cov=app --cov-report=xml
-            '''
-        }
-    }
-}
-
-stage('SonarQube Analysis') {
-    steps {
-        dir('python-app') {
-            withSonarQubeEnv('sonarqube-server') {
-                sh '''
-                    . venv/bin/activate
-                    export PYTHONPATH=$(pwd)
-
-                    npx sonar-scanner \
-                      -Dsonar.projectKey=python-app \
-                      -Dsonar.projectName="python-app" \
-                      -Dsonar.sources=app \
-                      -Dsonar.tests=tests \
-                      -Dsonar.python.coverage.reportPaths=coverage.xml
-                '''
+        stage('Install Dependencies') {
+            steps {
+                dir('python-app') {
+                    sh '''
+                        python3 -m venv venv
+                        . venv/bin/activate
+                        pip install --upgrade pip
+                        pip install -r requirements.txt
+                    '''
+                }
             }
         }
-    }
-}
+
+        stage('Run Tests') {
+            steps {
+                dir('python-app') {
+                    sh '''
+                        . venv/bin/activate
+                        export PYTHONPATH=$(pwd)
+                        pytest tests --maxfail=1 --disable-warnings --cov=app --cov-report=xml
+                    '''
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                dir('python-app') {
+                    withSonarQubeEnv('sonarqube-server') {
+                        sh '''
+                            . venv/bin/activate
+                            export PYTHONPATH=$(pwd)
+
+                            npx sonar-scanner \
+                              -Dsonar.projectKey=python-app \
+                              -Dsonar.projectName="python-app" \
+                              -Dsonar.sources=app \
+                              -Dsonar.tests=tests \
+                              -Dsonar.python.coverage.reportPaths=coverage.xml
+                        '''
+                    }
+                }
+            }
+        }
 
         stage('Quality Gate') {
             steps {
@@ -86,59 +87,60 @@ stage('SonarQube Analysis') {
             }
         }
 
-stage('Push Docker Image to ECR') {
-    steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'aws-creds'
-        ]]) {
-            sh """
-                aws sts get-caller-identity
+        stage('Push Docker Image to ECR') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    sh """
+                        aws sts get-caller-identity
 
-                aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | \
-                docker login --username AWS --password-stdin \
-                ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
+                        aws ecr get-login-password --region ${AWS_REGION} | \
+                        docker login --username AWS --password-stdin \
+                        ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-                docker push ${IMAGE_URI}
-            """
+                        docker push ${IMAGE_URI}
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to EKS with Helm') {
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    sh """
+                        unset KUBECONFIG
+                        unset KUBERNETES_MASTER
+                        unset KUBE_MASTER
+                        unset HELM_KUBEAPISERVER
+                        unset HELM_KUBETOKEN
+                        unset HELM_KUBECAFILE
+                        unset HELM_KUBEINSECURE_SKIP_TLS_VERIFY
+
+                        aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
+
+                        kubectl get nodes
+                        helm lint ./helm/python-app
+
+                        helm upgrade --install ${HELM_RELEASE} ./helm/python-app \
+                          --namespace ${K8S_NAMESPACE} \
+                          --create-namespace \
+                          --set image.repository=${IMAGE_REPO} \
+                          --set image.tag=${IMAGE_TAG} \
+                          --kubeconfig /var/lib/jenkins/.kube/config
+
+                        kubectl get pods -n ${K8S_NAMESPACE}
+                        kubectl get svc -n ${K8S_NAMESPACE}
+                        helm list -n ${K8S_NAMESPACE} --kubeconfig /var/lib/jenkins/.kube/config
+                    """
+                }
+            }
         }
     }
-}
-
-stage('Deploy to EKS with Helm') {
-    steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'aws-creds'
-        ]]) {
-            sh """
-                unset KUBECONFIG
-                unset KUBERNETES_MASTER
-                unset KUBE_MASTER
-                unset HELM_KUBEAPISERVER
-                unset HELM_KUBETOKEN
-                unset HELM_KUBECAFILE
-                unset HELM_KUBEINSECURE_SKIP_TLS_VERIFY
-
-                aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ${EKS_CLUSTER_NAME}
-
-                kubectl get nodes
-                helm lint ./helm/python-app
-
-                helm upgrade --install ${HELM_RELEASE} ./helm/python-app \
-                  --namespace ${K8S_NAMESPACE} \
-                  --create-namespace \
-                  --set image.repository=${IMAGE_REPO} \
-                  --set image.tag=${IMAGE_TAG} \
-                  --kubeconfig /var/lib/jenkins/.kube/config
-
-                kubectl get pods -n ${K8S_NAMESPACE}
-                kubectl get svc -n ${K8S_NAMESPACE}
-                helm list -n ${K8S_NAMESPACE} --kubeconfig /var/lib/jenkins/.kube/config
-            """
-        }
-    }
-}
 
     post {
         success {
