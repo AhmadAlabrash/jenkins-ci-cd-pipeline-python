@@ -4,6 +4,8 @@ This project demonstrates a complete CI/CD pipeline for a Python Flask applicati
 
 The pipeline automates code testing, code quality analysis, container image creation, pushing images to AWS ECR, and deploying the application to Kubernetes on Amazon EKS.
 
+![Project Diagram](diagram/project-diagram.png)
+
 ---
 
 ## Project Overview
