@@ -2,17 +2,17 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCOUNT_ID = 'YOUR_AWS_ACCOUNT_ID'
+        AWS_ACCOUNT_ID    = 'YOUR_AWS_ACCOUNT_ID'
         AWS_DEFAULT_REGION = 'eu-central-1'
-        ECR_REPO = 'python-app'
-        IMAGE_TAG = "${BUILD_NUMBER}"
-        IMAGE_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO}"
-        IMAGE_URI = "${IMAGE_REPO}:${IMAGE_TAG}"
+        ECR_REPO          = 'python-app'
+        IMAGE_TAG         = "${BUILD_NUMBER}"
+        IMAGE_REPO        = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPO}"
+        IMAGE_URI         = "${IMAGE_REPO}:${IMAGE_TAG}"
 
-        SONARQUBE_ENV = 'sonarqube-server'
-        EKS_CLUSTER_NAME = 'YOUR_EKS_CLUSTER_NAME'
-        HELM_RELEASE = 'python-app'
-        K8S_NAMESPACE = 'default'
+        SONARQUBE_ENV     = 'sonarqube-server'
+        EKS_CLUSTER_NAME  = 'YOUR_EKS_CLUSTER_NAME'
+        HELM_RELEASE      = 'python-app'
+        K8S_NAMESPACE     = 'default'
     }
 
     stages {
@@ -40,7 +40,7 @@ pipeline {
                 dir('python-app') {
                     sh '''
                         . venv/bin/activate
-                        pytest tests --maxfail=1 --disable-warnings
+                        pytest tests --maxfail=1 --disable-warnings --cov=app --cov-report=xml
                     '''
                 }
             }
@@ -81,9 +81,7 @@ pipeline {
         stage('Push Docker Image to ECR') {
             steps {
                 sh '''
-                    aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | \
-                    docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
-
+                    aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
                     docker push ${IMAGE_URI}
                 '''
             }
@@ -93,7 +91,6 @@ pipeline {
             steps {
                 sh '''
                     aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ${EKS_CLUSTER_NAME}
-
                     helm upgrade --install ${HELM_RELEASE} ./helm/python-app \
                       --namespace ${K8S_NAMESPACE} \
                       --create-namespace \
