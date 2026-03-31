@@ -96,9 +96,9 @@ pipeline {
                     sh """
                         aws sts get-caller-identity
 
-                        aws ecr get-login-password --region ${AWS_REGION} | \
+                        aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | \
                         docker login --username AWS --password-stdin \
-                        ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                        ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com
 
                         docker push ${IMAGE_URI}
                     """
@@ -121,7 +121,7 @@ pipeline {
                         unset HELM_KUBECAFILE
                         unset HELM_KUBEINSECURE_SKIP_TLS_VERIFY
 
-                        aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
+                        aws eks update-kubeconfig --region ${AWS_DEFAULT_REGION} --name ${EKS_CLUSTER_NAME}
 
                         kubectl get nodes
                         helm lint ./helm/python-app
