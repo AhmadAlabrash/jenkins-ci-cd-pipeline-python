@@ -22,42 +22,44 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                dir('python-app') {
-                    sh '''
-                        python3 -m venv venv
-                        . venv/bin/activate
-                        pip install --upgrade pip
-                        pip install -r requirements.txt
-                    '''
-                }
-            }
+stage('Install Dependencies') {
+    steps {
+        dir('python-app') {
+            sh '''
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
+            '''
         }
+    }
+}
 
-        stage('Run Tests') {
-            steps {
-                dir('python-app') {
-                    sh '''
-                        . venv/bin/activate
-                        pytest tests --maxfail=1 --disable-warnings --cov=app --cov-report=xml
-                    '''
-                }
-            }
+stage('Run Tests') {
+    steps {
+        dir('python-app') {
+            sh '''
+                . venv/bin/activate
+                export PYTHONPATH=$(pwd)
+                pytest tests --maxfail=1 --disable-warnings --cov=app --cov-report=xml
+            '''
         }
+    }
+}
 
-        stage('SonarQube Analysis') {
-            steps {
-                dir('python-app') {
-                    withSonarQubeEnv("${SONARQUBE_ENV}") {
-                        sh '''
-                            . venv/bin/activate
-                            sonar-scanner
-                        '''
-                    }
-                }
+stage('SonarQube Analysis') {
+    steps {
+        dir('python-app') {
+            withSonarQubeEnv("${SONARQUBE_ENV}") {
+                sh '''
+                    . venv/bin/activate
+                    export PYTHONPATH=$(pwd)
+                    sonar-scanner
+                '''
             }
         }
+    }
+}
 
         stage('Quality Gate') {
             steps {
