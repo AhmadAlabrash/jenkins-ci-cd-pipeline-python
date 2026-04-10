@@ -13,6 +13,14 @@ The pipeline automates code testing, code quality analysis, container image crea
 The application is a Python Flask web app stored in GitHub.  
 Whenever code is pushed to the repository, Jenkins is triggered automatically through a GitHub webhook.
 
+
+## 🧩 Watch Demo
+
+Watch this project in action:
+
+[![Application Demo ▶️](https://img.youtube.com/vi/qthVZ1sh0Dc/maxresdefault.jpg)](https://youtu.be/qthVZ1sh0Dc)
+
+
 The pipeline performs the following steps:
 
 1. Checks out the source code from GitHub
